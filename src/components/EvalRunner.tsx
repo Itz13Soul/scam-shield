@@ -11,6 +11,7 @@ export default function EvalRunner() {
     setLog([]);
     let from = 0;
     let total = 1;
+    const failedIds: string[] = [];
     while (from < total) {
       try {
         const res = await fetch("/api/admin/eval-batch", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ from, count: 3 }) });
@@ -22,13 +23,14 @@ export default function EvalRunner() {
         total = data.total ?? total;
         const failed = (data.results ?? []).filter((r) => !r.ok);
         setLog((l) => [...l, `${data.next}/${total} done${failed.length ? `, failed: ${failed.map((f) => `${f.id} (${f.error})`).join("; ")}` : ""}`]);
-        if (failed.length) break;
         from = data.next;
+        if (failed.length) failedIds.push(...failed.map((f) => f.id));
       } catch {
         setLog((l) => [...l, `Network error at ${from}`]);
         break;
       }
     }
+    setLog((l) => [...l, failedIds.length ? `Finished with ${failedIds.length} failed (${failedIds.join(", ")}). Click Run evaluation again to retry only those.` : "Finished. All cases stored."]);
     setBusy(false);
   }
 

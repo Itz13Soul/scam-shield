@@ -15,8 +15,11 @@ export async function POST(req: Request) {
   const slice = CASES.slice(parsed.data.from, parsed.data.from + parsed.data.count);
   const db = supabaseService();
   const model = process.env.GEMINI_MODEL ?? "unknown";
+  const { data: done } = await db.from("ss_evals").select("case_id").in("case_id", slice.map((c) => c.id));
+  const have = new Set((done ?? []).map((r: { case_id: string }) => r.case_id));
   const results = await Promise.all(
     slice.map(async (c) => {
+      if (have.has(c.id)) return { id: c.id, ok: true, level: null, error: undefined };
       try {
         const a = await analyze(c.text);
         const { error } = await db
