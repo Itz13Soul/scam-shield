@@ -35,6 +35,10 @@ Pattern rules alone: 65% of scams caught, 5% of genuine messages wrongly flagged
 
 `npm run typecheck`, `npm run lint`, `npm test`, `npm run secret-scan`.
 
+## Deployment
+
+Deploy on Vercel with the variables listed in `.env.example`.
+
 ## Notice
 
 Not legal advice. A probability, not proof. Always verify through a number you already trust and report fraud at 1930 or cybercrime.gov.in. Audio and text are processed to produce the verdict and are not stored.
