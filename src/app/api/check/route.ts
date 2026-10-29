@@ -46,6 +46,6 @@ export async function POST(req: Request) {
     const msg = String(e);
     const reason = msg.includes("schema validation") ? "The model returned an unexpected format." : /HTTP (429|5\d\d)|timeout|aborted|budget/i.test(msg) ? "The model is busy or slow." : "The check failed.";
     console.error("check failed", msg.slice(0, 400));
-    return clientError(502, `${reason} Please try again.`);
+    return clientError(502, `${reason} Please try again. [debug: ${msg.replace(/AIza[\w-]+/g, "").slice(0, 220)}]`);
   }
 }
