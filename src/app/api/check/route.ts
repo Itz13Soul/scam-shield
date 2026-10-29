@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { analyze } from "../../../lib/analyze";
+import { wavIsSilent } from "../../../lib/audio";
 import { transcribeAudio } from "../../../lib/llm";
 import { clientError, guard } from "../../../lib/usage";
 
@@ -22,6 +23,7 @@ export async function POST(req: Request) {
     if (!AUDIO_TYPES.has(mime)) return clientError(400, "Unsupported audio format. Use MP3, WAV, M4A, AAC, OGG, WEBM or FLAC.");
     if (file.size > MAX_AUDIO) return clientError(413, "The audio file is too large. The limit is 3.5 MB, about two to three minutes.");
     const buf = Buffer.from(await file.arrayBuffer());
+    if (wavIsSilent(buf)) return clientError(422, "No clear speech was found in this audio.");
     audio = { base64: buf.toString("base64"), mime };
   } else {
     const parsed = TextBody.safeParse(await req.json().catch(() => null));
