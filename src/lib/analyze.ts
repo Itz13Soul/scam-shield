@@ -5,13 +5,20 @@ import { maxLevel, ruleFloor, ruleHits, type Level, type RuleHit } from "./rules
 export const SIGNAL_TYPES = ["urgency", "impersonation", "payment_request", "otp_request", "isolation", "threat", "remote_access", "too_good_to_be_true"] as const;
 
 const ModelSchema = z.object({
-  level: z.enum(["high", "suspicious", "none"]),
-  signals: z.array(z.object({ type: z.enum(SIGNAL_TYPES), quote: z.string() })).max(8),
-  explanation_en: z.string(),
-  explanation_hi: z.string(),
-  next_steps_en: z.array(z.string()).max(5),
-  next_steps_hi: z.array(z.string()).max(5),
+  level: z.string(),
+  signals: z.array(z.object({ type: z.string(), quote: z.string() })).default([]),
+  explanation_en: z.string().default(""),
+  explanation_hi: z.string().default(""),
+  next_steps_en: z.array(z.string()).default([]),
+  next_steps_hi: z.array(z.string()).default([]),
 });
+
+function toLevel(v: string): Level {
+  const s = v.toLowerCase();
+  if (s.includes("high")) return "high";
+  if (s.includes("susp") || s.includes("medium") || s.includes("moderate")) return "suspicious";
+  return "none";
+}
 
 export type Analysis = {
   level: Level;
@@ -44,16 +51,19 @@ export async function analyze(text: string): Promise<Analysis> {
   const ruleLevel = ruleFloor(hits);
   const out = await llmJson(ModelSchema, { system: SYSTEM, user: `Text to analyse:\n"""\n${clipped}\n"""` });
   const hay = norm(clipped);
-  const kept = out.signals.filter((s) => s.quote.trim().length > 2 && hay.includes(norm(s.quote)));
-  const level = maxLevel(out.level, ruleLevel);
+  const known = new Set<string>(SIGNAL_TYPES);
+  const typed = out.signals.filter((s) => known.has(s.type)) as { type: (typeof SIGNAL_TYPES)[number]; quote: string }[];
+  const kept = typed.filter((s) => s.quote.trim().length > 2 && hay.includes(norm(s.quote))).slice(0, 8);
+  const modelLevel = toLevel(out.level);
+  const level = maxLevel(modelLevel, ruleLevel);
   return {
     level,
     signals: kept,
     rules: hits,
     droppedSignals: out.signals.length - kept.length,
     explanation: { en: out.explanation_en, hi: out.explanation_hi },
-    nextSteps: { en: out.next_steps_en, hi: out.next_steps_hi },
-    modelLevel: out.level,
+    nextSteps: { en: out.next_steps_en.slice(0, 5), hi: out.next_steps_hi.slice(0, 5) },
+    modelLevel,
     ruleLevel,
   };
 }
