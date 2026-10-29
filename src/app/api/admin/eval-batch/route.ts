@@ -6,7 +6,7 @@ import { supabaseService } from "../../../../lib/supabase";
 
 export const maxDuration = 60;
 
-const Body = z.object({ from: z.number().int().min(0).max(CASES.length), count: z.number().int().min(1).max(4) });
+const Body = z.object({ from: z.number().int().min(0).max(CASES.length), count: z.number().int().min(1).max(3) });
 
 export async function POST(req: Request) {
   if (!(await isAdmin())) return Response.json({ error: "Unauthorised." }, { status: 401 });

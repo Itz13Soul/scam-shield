@@ -9,8 +9,6 @@ const ModelSchema = z.object({
   signals: z.array(z.object({ type: z.string(), quote: z.string() })).default([]),
   explanation_en: z.string().default(""),
   explanation_hi: z.string().default(""),
-  next_steps_en: z.array(z.string()).default([]),
-  next_steps_hi: z.array(z.string()).default([]),
 });
 
 function toLevel(v: string): Level {
@@ -37,9 +35,24 @@ Rules:
 - level "high": a clear scam script. "suspicious": some scam traits but not conclusive. "none": no scam traits found. Never describe anything as safe.
 - Genuine bank or delivery alerts that warn "do not share your OTP" are not scams. Ordinary conversation, reminders and genuine notices are "none".
 - signals: only traits actually present. For each, "quote" must be copied exactly from the text, character for character, at most 160 characters.
-- explanation_en and explanation_hi: two or three plain sentences for a non-technical person, one in English and one in simple Hindi (Devanagari). Say what the text asks for and why that is risky or not.
-- next_steps_en and next_steps_hi: up to four short actions. For "high" or "suspicious" include: do not pay or share anything, hang up or stop replying, verify through a number you already trust, and report at 1930 (national cyber-crime helpline) or cybercrime.gov.in. For "none" say the check found no scam traits but to verify through a known number if money or data is requested.
-Return one JSON object: {"level","signals":[{"type","quote"}],"explanation_en","explanation_hi","next_steps_en":[],"next_steps_hi":[]}.`;
+- explanation_en and explanation_hi: at most two short sentences each for a non-technical person, one in English and one in simple Hindi (Devanagari). Say what the text asks for and why that is risky or not.
+- At most 4 signals.
+Return one JSON object: {"level","signals":[{"type","quote"}],"explanation_en","explanation_hi"}.`;
+
+const STEPS: Record<Level, { en: string[]; hi: string[] }> = {
+  high: {
+    en: ["Do not pay, transfer money or share any OTP, PIN or code.", "Hang up or stop replying. Do not click links or install apps they ask for.", "Verify through a number you already trust, such as the one on your bank card or the official website.", "Report it at 1930 or cybercrime.gov.in, and tell a family member."],
+    hi: ["पैसे न भेजें और कोई ओटीपी, पिन या कोड साझा न करें।", "कॉल काट दें या जवाब देना बंद करें। उनके भेजे लिंक न खोलें और ऐप इंस्टॉल न करें।", "अपने बैंक कार्ड या आधिकारिक वेबसाइट पर दिए भरोसेमंद नंबर से पुष्टि करें।", "1930 या cybercrime.gov.in पर शिकायत करें और परिवार के किसी सदस्य को बताएं।"],
+  },
+  suspicious: {
+    en: ["Do not pay or share any OTP, PIN or personal details yet.", "Verify through a number you already trust, not the one in the message.", "If it feels like a scam, report it at 1930 or cybercrime.gov.in."],
+    hi: ["अभी पैसे न भेजें और ओटीपी, पिन या निजी जानकारी साझा न करें।", "संदेश में दिए नंबर की जगह किसी भरोसेमंद नंबर से पुष्टि करें।", "ठगी लगे तो 1930 या cybercrime.gov.in पर शिकायत करें।"],
+  },
+  none: {
+    en: ["No scam traits were found, which is not a guarantee. If money, an OTP or personal data is requested, verify through a number you already trust.", "If you are unsure, report at 1930 or cybercrime.gov.in."],
+    hi: ["ठगी के लक्षण नहीं मिले, पर यह गारंटी नहीं है। पैसे, ओटीपी या निजी जानकारी मांगी जाए तो किसी भरोसेमंद नंबर से पुष्टि करें।", "संदेह हो तो 1930 या cybercrime.gov.in पर शिकायत करें।"],
+  },
+};
 
 function norm(s: string): string {
   return s.toLowerCase().replace(/\s+/g, " ").trim();
@@ -62,7 +75,7 @@ export async function analyze(text: string): Promise<Analysis> {
     rules: hits,
     droppedSignals: out.signals.length - kept.length,
     explanation: { en: out.explanation_en, hi: out.explanation_hi },
-    nextSteps: { en: out.next_steps_en.slice(0, 5), hi: out.next_steps_hi.slice(0, 5) },
+    nextSteps: STEPS[level],
     modelLevel,
     ruleLevel,
   };

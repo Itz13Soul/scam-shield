@@ -35,7 +35,7 @@ async function postJson(url: string, headers: Record<string, string>, body: unkn
         method: "POST",
         headers: { "content-type": "application/json", ...headers },
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(Math.min(20000, remaining)),
+        signal: AbortSignal.timeout(Math.min(42000, remaining)),
       });
       if (res.ok) return res.json();
       const text = await res.text();
