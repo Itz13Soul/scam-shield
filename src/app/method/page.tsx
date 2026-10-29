@@ -62,7 +62,7 @@ export default async function Method() {
         <li>The test set is small and synthetic. It is not a sample of real scam traffic, so real-world accuracy will be lower. Treat the scores as an early baseline.</li>
         <li>This version does not detect cloned or deepfake voices. It reads what is said, not how it sounds. Audio deepfake scoring and the WhatsApp bot are planned and not claimed here.</li>
         <li>The pattern rules were written by the same developer who wrote the test cases, so the rules-only score is likely optimistic. A held-out set from another author is needed for a fair figure.</li>
-        <li>Transcription can mishear Hindi or noisy audio, and the verdict depends on the transcript.</li>
+        <li>Transcription can mishear Hindi or noisy audio, and the verdict depends on the transcript. In testing, the transcriber invented short phrases from a silent clip, so the page rejects silent recordings and always shows the transcript for you to check.</li>
         <li>A scammer who avoids these patterns can pass. Never treat &ldquo;no scam traits found&rdquo; as proof of safety. Verify through a number you already trust, and report fraud at 1930.</li>
         <li>Not legal advice. A probability, not proof. Uploaded audio and pasted text are processed to produce the verdict and are not stored.</li>
       </ul>

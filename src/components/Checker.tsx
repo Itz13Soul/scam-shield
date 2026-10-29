@@ -28,6 +28,24 @@ const SIGNAL_LABEL: Record<string, { en: string; hi: string }> = {
   too_good_to_be_true: { en: "Too good to be true", hi: "बहुत अच्छा ऑफर" },
 };
 
+async function hasSound(file: File): Promise<boolean | null> {
+  try {
+    const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return null;
+    const ctx = new Ctx();
+    const buf = await ctx.decodeAudioData(await file.arrayBuffer());
+    void ctx.close();
+    let peak = 0;
+    for (let c = 0; c < buf.numberOfChannels; c++) {
+      const d = buf.getChannelData(c);
+      for (let i = 0; i < d.length; i += 16) peak = Math.max(peak, Math.abs(d[i]));
+    }
+    return peak > 0.02;
+  } catch {
+    return null;
+  }
+}
+
 export default function Checker() {
   const [mode, setMode] = useState<"text" | "audio">("text");
   const [lang, setLang] = useState<"en" | "hi">("en");
@@ -44,6 +62,11 @@ export default function Checker() {
     try {
       let res: Response;
       if (mode === "audio" && file) {
+        if ((await hasSound(file)) === false) {
+          setError("No sound was detected in this recording. Please upload a clearer file.");
+          setBusy(false);
+          return;
+        }
         const fd = new FormData();
         fd.append("audio", file);
         res = await fetch("/api/check", { method: "POST", body: fd });
