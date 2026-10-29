@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Analysis } from "../lib/analyze";
+import { ruleFloor, ruleHits, type RuleHit } from "../lib/rules";
 
 type Result = { transcript: string | null; language: string | null; analysis: Analysis };
 
@@ -54,16 +55,22 @@ export default function Checker() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<Result | null>(null);
+  const [quick, setQuick] = useState<RuleHit[] | null>(null);
+  const [elapsed, setElapsed] = useState(0);
 
   async function run() {
     setBusy(true);
     setError("");
     setResult(null);
+    setElapsed(0);
+    setQuick(mode === "text" ? ruleHits(text) : null);
+    const timer = setInterval(() => setElapsed((n) => n + 1), 1000);
     try {
       let res: Response;
       if (mode === "audio" && file) {
         if ((await hasSound(file)) === false) {
           setError("No sound was detected in this recording. Please upload a clearer file.");
+          clearInterval(timer);
           setBusy(false);
           return;
         }
@@ -79,6 +86,7 @@ export default function Checker() {
     } catch {
       setError("Network error.");
     } finally {
+      clearInterval(timer);
       setBusy(false);
     }
   }
@@ -134,7 +142,17 @@ export default function Checker() {
       <button type="button" onClick={run} disabled={busy || !ready} className="mt-4 rounded-lg bg-teal-400 px-4 py-2 text-sm font-semibold text-zinc-950 hover:bg-teal-300 disabled:opacity-40">
         {busy ? "Checking..." : "Check for a scam script"}
       </button>
-      {busy && <p className="mt-2 text-xs text-zinc-500">This can take up to 40 seconds.</p>}
+      {busy && (
+        <div className="mt-3 text-xs text-zinc-400" role="status">
+          {quick && quick.length > 0 ? (
+            <p className="rounded-lg border border-orange-400/40 bg-orange-500/10 p-3 text-orange-100">
+              Quick scan already found {quick.length} scam {quick.length === 1 ? "trait" : "traits"} ({quick.map((h) => h.label).join(", ")}). Level so far: {ruleFloor(quick) === "high" ? "high risk" : "suspicious"}. Full check is running ({elapsed}s).
+            </p>
+          ) : (
+            <p>{mode === "audio" ? "Transcribing and checking" : "Full check running"} ({elapsed}s). Most checks finish within 10 seconds.</p>
+          )}
+        </div>
+      )}
       {error && <p className="mt-3 text-sm text-red-300">{error}</p>}
 
       {a && L && (
