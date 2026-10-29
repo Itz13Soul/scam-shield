@@ -13,7 +13,7 @@ export default function EvalRunner() {
     let total = 1;
     while (from < total) {
       try {
-        const res = await fetch("/api/admin/eval-batch", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ from, count: 2 }) });
+        const res = await fetch("/api/admin/eval-batch", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ from, count: 3 }) });
         const data = (await res.json().catch(() => null)) as { next?: number; total?: number; results?: { id: string; ok: boolean; error?: string }[]; error?: string } | null;
         if (!res.ok || !data || data.next === undefined) {
           setLog((l) => [...l, `Stopped at ${from}: ${data?.error ?? "server error"}`]);

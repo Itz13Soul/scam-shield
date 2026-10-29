@@ -55,7 +55,15 @@ const STEPS: Record<Level, { en: string[]; hi: string[] }> = {
 };
 
 function norm(s: string): string {
-  return s.toLowerCase().replace(/\s+/g, " ").trim();
+  return s.normalize("NFC").toLowerCase().replace(/[\p{P}\p{S}]/gu, " ").replace(/\s+/g, " ").trim();
+}
+
+function supported(quote: string, haystack: string): boolean {
+  const q = norm(quote);
+  if (q.length < 3) return false;
+  if (haystack.includes(q)) return true;
+  const words = q.split(" ").filter((w) => w.length > 1);
+  return words.length >= 2 && words.every((w) => haystack.includes(w));
 }
 
 export async function analyze(text: string): Promise<Analysis> {
@@ -66,7 +74,7 @@ export async function analyze(text: string): Promise<Analysis> {
   const hay = norm(clipped);
   const known = new Set<string>(SIGNAL_TYPES);
   const typed = out.signals.filter((s) => known.has(s.type)) as { type: (typeof SIGNAL_TYPES)[number]; quote: string }[];
-  const kept = typed.filter((s) => s.quote.trim().length > 2 && hay.includes(norm(s.quote))).slice(0, 8);
+  const kept = typed.filter((s) => supported(s.quote, hay)).slice(0, 8);
   const modelLevel = toLevel(out.level);
   const level = maxLevel(modelLevel, ruleLevel);
   return {
