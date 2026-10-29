@@ -20,7 +20,11 @@ Web upload and paste are live. Deepfake voice scoring and the WhatsApp bot from 
 
 40 short labelled texts written by the developer (20 scam, 20 genuine, in English, Hinglish and Hindi), with hard negatives such as bank alerts and police awareness notices. Results are stored by the admin console and shown on the Method page.
 
-Pattern rules alone: 65% of scams caught, 5% of genuine messages wrongly flagged. The rules were written by the same author as the cases, so this figure is likely optimistic. The model-plus-rules score is on the live Method page. A held-out set from another author and real traffic are needed for a fair accuracy claim.
+### Result (29 Oct 2026, gemini-3.8-flash)
+
+Model plus rules: **20 of 20 scams caught (100%), 1 of 20 genuine messages wrongly flagged (5%)**, and every "high risk" verdict was a real scam. The one false alarm came from the pattern rules, not the model: a genuine bank alert that says "if you did not make this transaction, call the bank" was marked suspicious. The model alone had no false alarms on this set.
+
+Pattern rules alone: 65% of scams caught, 5% of genuine messages wrongly flagged. The rules were written by the same author as the cases, so this figure is likely optimistic. This is a small, easy, synthetic set, so 100% recall is not a claim about real-world scams, which are messier. The live Method page shows the same numbers. A held-out set from another author and real traffic are needed for a fair accuracy claim.
 
 ## Setup
 
