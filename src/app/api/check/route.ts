@@ -42,7 +42,10 @@ export async function POST(req: Request) {
     }
     const analysis = await analyze(text);
     return Response.json({ transcript: audio ? text : null, language, analysis });
-  } catch {
-    return clientError(502, "The check could not be completed. Please try again.");
+  } catch (e) {
+    const msg = String(e);
+    const reason = msg.includes("schema validation") ? "The model returned an unexpected format." : /HTTP (429|5\d\d)|timeout|aborted|budget/i.test(msg) ? "The model is busy or slow." : "The check failed.";
+    console.error("check failed", msg.slice(0, 400));
+    return clientError(502, `${reason} Please try again.`);
   }
 }
