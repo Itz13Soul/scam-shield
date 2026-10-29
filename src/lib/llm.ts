@@ -150,7 +150,7 @@ export async function transcribeAudio(base64: string, mimeType: string): Promise
           systemInstruction: {
             parts: [
               {
-                text: 'Transcribe the speech in the audio verbatim. Keep Hindi in Devanagari and English in Latin letters, as spoken. Do not summarise, translate or add anything. If there is no speech, set speech_found to false and transcript to an empty string. Return one JSON object: {"transcript": string, "language": string, "speech_found": boolean}.',
+                text: 'Transcribe the speech in the audio verbatim. Keep Hindi in Devanagari and English in Latin letters, as spoken. Do not summarise, translate or add anything. Write only words you can clearly hear. Never guess, never invent a greeting or any filler. If the audio is silent, only noise or music, or no words are clearly audible, set speech_found to false and transcript to an empty string. Return one JSON object: {"transcript": string, "language": string, "speech_found": boolean}.',
               },
             ],
           },
