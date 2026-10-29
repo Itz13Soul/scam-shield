@@ -50,3 +50,5 @@ Not legal advice. A probability, not proof. Always verify through a number you a
 ## License
 
 Copyright (c) 2026 Divyansh Srivastava. All rights reserved. Viewing only; see LICENSE.
+
+Read the one-page [case study](CASE_STUDY.md).
