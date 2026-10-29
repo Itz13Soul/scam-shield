@@ -44,8 +44,8 @@ export async function POST(req: Request) {
     return Response.json({ transcript: audio ? text : null, language, analysis });
   } catch (e) {
     const msg = String(e);
-    const reason = msg.includes("schema validation") ? "The model returned an unexpected format." : /HTTP (429|5\d\d)|timeout|aborted|budget/i.test(msg) ? "The model is busy or slow." : "The check failed.";
+    const reason = /HTTP 404/.test(msg) ? "The configured model is unavailable." : msg.includes("schema validation") ? "The model returned an unexpected format." : /HTTP (429|5\d\d)|timeout|aborted|budget/i.test(msg) ? "The model is busy or slow." : "The check failed.";
     console.error("check failed", msg.slice(0, 400));
-    return clientError(502, `${reason} Please try again. [debug: ${msg.replace(/AIza[\w-]+/g, "").slice(0, 220)}]`);
+    return clientError(502, `${reason} Please try again.`);
   }
 }
