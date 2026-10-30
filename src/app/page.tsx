@@ -1,19 +1,13 @@
 import Link from "next/link";
 import Checker from "../components/Checker";
 import ShieldLoader from "../components/ShieldLoader";
+import HeroAB from "../components/HeroAB";
 
 export default function Home() {
   return (
     <main>
       <section className="mx-auto grid w-full max-w-6xl items-center gap-8 px-4 pb-8 pt-12 md:grid-cols-[1.4fr_0.6fr] md:pt-16">
-        <div>
-          <h1 className="font-display hero-in text-4xl font-semibold leading-[1.1] sm:text-5xl">
-            A cloned voice can sound real. The script gives it away.
-          </h1>
-          <p className="hero-in mt-5 max-w-xl text-lg text-zinc-300" style={{ animationDelay: "100ms" }}>
-            Paste a suspicious message or upload a call recording. Get a plain verdict in Hindi or English, the lines that look like a scam, and what to do next.
-          </p>
-        </div>
+        <HeroAB />
         <div className="relative mx-auto hidden aspect-square w-full max-w-[14rem] md:block">
           <ShieldLoader />
         </div>

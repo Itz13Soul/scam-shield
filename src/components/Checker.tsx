@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { track } from "../lib/track";
+import { logAb } from "../lib/ab";
 import type { Analysis } from "../lib/analyze";
 import { ruleFloor, ruleHits, type RuleHit } from "../lib/rules";
 
@@ -64,6 +66,8 @@ export default function Checker() {
     setResult(null);
     setElapsed(0);
     setQuick(mode === "text" ? ruleHits(text) : null);
+    track("check_started", { mode, language: lang });
+    logAb("check_started");
     const timer = setInterval(() => setElapsed((n) => n + 1), 1000);
     try {
       let res: Response;
@@ -81,8 +85,12 @@ export default function Checker() {
         res = await fetch("/api/check", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }) });
       }
       const data = (await res.json().catch(() => ({ error: "The server took too long. Please try again." }))) as Partial<Result> & { error?: string };
-      if (!res.ok || !data.analysis) setError(data.error ?? "Something went wrong.");
-      else setResult({ transcript: data.transcript ?? null, language: data.language ?? null, analysis: data.analysis });
+      if (!res.ok || !data.analysis) { setError(data.error ?? "Something went wrong."); track("check_error", { status: res.status }); }
+      else {
+        setResult({ transcript: data.transcript ?? null, language: data.language ?? null, analysis: data.analysis });
+        track("check_completed", { mode, level: data.analysis.level });
+        logAb("check_completed");
+      }
     } catch {
       setError("Network error.");
     } finally {
